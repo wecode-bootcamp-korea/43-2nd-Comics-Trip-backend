@@ -5,7 +5,6 @@ CREATE TABLE rentals (
   single_volume_id INT NOT NULL,
   rental_status_id INT NOT NULL,
   price decimal(12, 4) NOT NULL,
-  discount INT NULL,
   rental_date varchar(50) NOT NULL,
   return_date varchar(50) NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
