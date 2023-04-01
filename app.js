@@ -5,6 +5,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 
 const route = require("./api/routes");
+
 const { globalErrorHandler } = require("./api/utils/error");
 
 const createApp = () => {
