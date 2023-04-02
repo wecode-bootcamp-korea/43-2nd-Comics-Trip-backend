@@ -39,6 +39,11 @@ const kakaoSignin = async (kakaoToken) => {
   return jwt.sign({ userId: userId }, process.env.SECRET_KEY);
 };
 
+const checkUserId = async (decoded_userId) => {
+  return userDao.checkUserId(decoded_userId);
+};
+
 module.exports = {
   kakaoSignin,
+  checkUserId,
 };
