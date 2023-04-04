@@ -60,8 +60,28 @@ const getBestBooks = async() => {
   )
 }
 
-
+const getRecommendedList = async(bookId) => {
+  return await dataSource.query(
+    `SELECT
+      b.id,
+      b.title,
+      AVG(r.rating) AS avgRating
+    FROM books b
+    INNER JOIN book_genre bg ON b.id = bg.book_id
+    INNER JOIN reviews r ON b.id = r.book_id
+    WHERE bg.genre_id IN (
+      SELECT genre_id
+      FROM book_genre
+      WHERE book_id = ?
+    )
+    GROUP BY b.id
+    ORDER BY AVG(r.rating) DESC;
+    `
+    ,[bookId]
+  )
+}
 module.exports = {
   getBooksByGenre,
-  getBestBooks
+  getBestBooks,
+  getRecommendedList
 }
