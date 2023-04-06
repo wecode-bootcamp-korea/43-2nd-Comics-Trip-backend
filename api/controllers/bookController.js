@@ -2,11 +2,7 @@ const bookService = require("../services/bookService");
 const { catchAsync } = require("../utils/error");
 
 const getBooksByGenre = catchAsync(async (req, res) => {
-  const { genreId } = req.query;
-  if (!genreId) {
-    return res.status(400).json({ meesage: "KEY_ERROR" });
-  }
-  const books = await bookService.getBooksByGenre(genreId);
+  const books = await bookService.getBooksByGenre();
   return res.status(200).json(books);
 });
 
@@ -47,7 +43,7 @@ const createRentalBookById = catchAsync(async (req, res) => {
 
 const createOwnerBookById = catchAsync(async (req, res) => {
   const { bookId, type } = req.body;
-  const userId = req.user;
+  const userId = req.user.id;
 
   if (!bookId) {
     const error = new Error("선택된 도서가 없습니다.");

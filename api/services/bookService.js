@@ -1,7 +1,7 @@
 const bookDao = require("../models/bookDao");
 
-const getBooksByGenre = async (genreId) => {
-  return await bookDao.getBooksByGenre(genreId);
+const getBooksByGenre = async () => {
+  return await bookDao.getBooksByGenre();
 };
 
 const getBestBooks = async () => {
@@ -21,7 +21,6 @@ const createRentalBookById = async (userId, bookId, type) => {
   const values = value.join(",");
   const bookIds = bookId.join(",");
   const checkUserbook = await bookDao.isInCollection(userId, bookIds);
-
   if (checkUserbook) {
     const error = new Error("ALREADY_EXIST_BOOK");
     error.statuscode = 400;
@@ -36,7 +35,7 @@ const createOwnerBookById = async (userId, bookId, type) => {
   const values = value.join(",");
   const bookIds = bookId.join(",");
   const checkUserbook = await bookDao.isInCollection(userId, bookIds);
-  if (!checkUserbook) {
+  if (checkUserbook) {
     const error = new Error("ALREADY_EXIST_BOOK");
     error.statuscode = 400;
     throw error;

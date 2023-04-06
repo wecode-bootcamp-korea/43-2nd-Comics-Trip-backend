@@ -1,40 +1,53 @@
 const dataSource = require("./dataSource");
 
-const getBooksByGenre = async (genreId) => {
+const getBooksByGenre = async () => {
   return await dataSource.query(
-    `SELECT
-    g.id AS genre_id,
-    g.genre AS genre,
-    (
-      SELECT JSON_ARRAYAGG(
-        JSON_OBJECT(
-          'id', b.id,
-          'title', b.title,
-          'writer', b.author,
-          'rating', b.avg_rating
+    `SELECT 
+    g.id, 
+    g.genre, 
+    JSON_ARRAYAGG(
+      JSON_OBJECT(
+        'id', b.id, 
+        'title', b.title, 
+        'author', b.author, 
+        'publisher', b.publisher,
+        'rating', COALESCE(avg_rating.avg_rating, 0),
+        'book_image', (
+          SELECT 
+            book_image_url
+          FROM 
+            single_volumes sv
+          WHERE 
+            sv.book_id = b.id
+          AND 
+            sv.sequence = (
+              SELECT 
+                MAX(sequence)
+              FROM 
+                single_volumes sv2
+              WHERE 
+                sv2.book_id = b.id
+            )
         )
-      )
-      FROM (
-        SELECT
-          b.id,
-          b.title,
-          b.author,
-          AVG(r.rating) AS avg_rating
-        FROM
-          books b
-          INNER JOIN book_genre bg ON b.id = bg.book_id
-          INNER JOIN genres g ON bg.genre_id = g.id
-          LEFT JOIN reviews r ON b.id = r.book_id
-        WHERE
-          g.id = g.id IN (?)
-        GROUP BY
-          b.id, b.title, b.author
-      ) b
-    ) AS list
-  FROM genres g
-  WHERE g.id IN (?)
-   `,
-    [genreId, genreId]
+      ) 
+    ) AS book_list 
+  FROM 
+    genres g 
+  LEFT JOIN 
+    book_genre bg ON g.id = bg.genre_id 
+  LEFT JOIN 
+    books b ON b.id = bg.book_id 
+  LEFT JOIN (
+    SELECT 
+      book_id, 
+      AVG(rating) AS avg_rating 
+    FROM 
+      reviews 
+    GROUP BY 
+      book_id
+  ) avg_rating ON b.id = avg_rating.book_id 
+  GROUP BY g.id, g.genre
+   `
   );
 };
 
@@ -45,16 +58,39 @@ const getBestBooks = async () => {
       b.title,
       b.author,
       b.publisher,
+      (
+        SELECT 
+          book_image_url
+		    FROM 
+          single_volumes sv
+		    WHERE 
+          sv.book_id = b.id
+			  AND 
+          sv.sequence = (
+    	      SELECT 
+              MAX(sequence)
+    	      FROM 
+              single_volumes sv2
+    	      WHERE 
+              sv2.book_id = b.id
+		      )
+	    )AS book_image,
       AVG(r.rating) as avgRating,
       COUNT(o.id) as ownerRatio
 
-    FROM books b
-    INNER JOIN reviews r ON b.id = r.book_id
-    INNER JOIN owners o ON b.id = o.single_volume_id
-    GROUP BY b.id
-    HAVING avgRating >= 4 AND avgRating <= 5
-    ORDER BY ownerRatio DESC
-    LIMIT 9
+    FROM 
+      books b
+    INNER JOIN 
+      reviews r ON b.id = r.book_id
+    INNER JOIN 
+      owners o ON b.id = o.single_volume_id
+    GROUP BY 
+      b.id
+    HAVING 
+      avgRating >= 4 AND avgRating <= 5
+    ORDER BY 
+      ownerRatio DESC
+    LIMIT 18
     `
   );
 };
@@ -65,16 +101,27 @@ const getRecommendedList = async (bookId) => {
       b.id,
       b.title,
       AVG(r.rating) AS avgRating
-    FROM books b
-    INNER JOIN book_genre bg ON b.id = bg.book_id
-    INNER JOIN reviews r ON b.id = r.book_id
-    WHERE bg.genre_id IN (
-      SELECT genre_id
-      FROM book_genre
-      WHERE book_id = ?
+    FROM 
+      books b
+    INNER JOIN 
+      book_genre bg ON b.id = bg.book_id
+    INNER JOIN 
+      reviews r ON b.id = r.book_id
+    WHERE 
+      bg.genre_id IN 
+      (
+      SELECT 
+        genre_id
+      FROM 
+        book_genre
+      WHERE 
+        book_id = ?
     )
-    GROUP BY b.id
-    ORDER BY AVG(r.rating) DESC;
+    GROUP BY 
+      b.id
+    ORDER BY 
+      AVG(r.rating) DESC
+    LIMIT 10
     `,
     [bookId]
   );
