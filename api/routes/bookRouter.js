@@ -3,6 +3,7 @@ const router = express.Router();
 const bookController = require("../controllers/bookController");
 const { checkToken } = require("../middlewares/auth");
 
+router.get("/search", bookController.getAllBooks);
 router.get("/best", bookController.getBestBooks);
 router.get("/genre", bookController.getBooksByGenre);
 router.get("/recomlist/:bookId", bookController.getRecommendedList);

@@ -6,7 +6,10 @@ const getOwnerLibraryBooks = async (userId) => {
       SELECT 
         sv.book_id,
         MAX(sv.book_image_url) as book_image_url, 
-      COUNT(DISTINCT sv.id) as book_count
+      COUNT(DISTINCT sv.id) as book_count,
+      JSON_ARRAYAGG(
+        sv.id  
+       )AS single_volume_id_list
       FROM 
         single_volumes sv
       JOIN 
@@ -14,7 +17,7 @@ const getOwnerLibraryBooks = async (userId) => {
       WHERE 
         o.user_id = ?
       GROUP BY 
-        sv.book_id;
+        sv.book_id
           `,
     [userId]
   );
@@ -33,7 +36,7 @@ const getRentalLibraryBooks = async (userId) => {
       JOIN 
         single_volumes sv ON r.single_volume_id = sv.id
       WHERE 
-        r.user_id = ?;
+        r.user_id = ?
           `,
     [userId]
   );

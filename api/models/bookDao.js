@@ -1,5 +1,15 @@
 const dataSource = require("./dataSource");
 
+const getAllBooks = async () => {
+  return await dataSource.query(
+    `SELECT
+      * 
+    FROM 
+      books
+   `
+  );
+};
+
 const getBooksByGenre = async () => {
   return await dataSource.query(
     `SELECT 
@@ -305,6 +315,7 @@ const isInCollection = async (userId, bookIds) => {
 };
 
 module.exports = {
+  getAllBooks,
   getBooksByGenre,
   getBestBooks,
   getRecommendedList,
